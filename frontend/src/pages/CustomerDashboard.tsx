@@ -32,7 +32,8 @@ export default function CustomerDashboard({ token, user, onLogout, triggerReques
       if (txData) setTransactions(txData);
 
       // 2. Fetch Devices
-      const devRes = await fetch('http://localhost:5000/api/admin/devices', {
+      const BACKEND_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+      const devRes = await fetch(`${BACKEND_URL}/api/admin/devices`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       // Fallback devices if devices endpoint needs mock or direct db

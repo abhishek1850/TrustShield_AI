@@ -82,7 +82,8 @@ function AppContent() {
 
   const handleLogoutApi = async () => {
     try {
-      await fetch('http://localhost:5000/api/auth/logout', {
+      const BACKEND_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+      await fetch(`${BACKEND_URL}/api/auth/logout`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`
@@ -124,7 +125,8 @@ function AppContent() {
     }
 
     try {
-      const response = await fetch(`http://localhost:5000${path}`, {
+      const BACKEND_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+      const response = await fetch(`${BACKEND_URL}${path}`, {
         method,
         headers,
         body: body ? JSON.stringify(body) : undefined
