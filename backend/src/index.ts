@@ -25,7 +25,7 @@ app.use(cors({
   origin: (origin, callback) => {
     const allowed = process.env.ALLOWED_ORIGINS 
       ? process.env.ALLOWED_ORIGINS.split(',') 
-      : ['http://localhost:3000', 'https://trustshield.bob.in'];
+      : ['http://localhost:3000', 'https://trustshield.bob.in', 'https://trustshieldai.vercel.app'];
     
     if (!origin || allowed.indexOf(origin) !== -1 || process.env.NODE_ENV !== 'production') {
       callback(null, true);
