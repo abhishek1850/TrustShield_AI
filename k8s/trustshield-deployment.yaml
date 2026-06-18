@@ -1,0 +1,230 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: trustshield
+---
+
+# -------------------------------------------------------------
+# 1. POSTGRES DATABASE (Staging Fallback)
+# -------------------------------------------------------------
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: db-deployment
+  namespace: trustshield
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: db
+  template:
+    metadata:
+      labels:
+        app: db
+    spec:
+      containers:
+      - name: postgres
+        image: postgres:15-alpine
+        ports:
+        - containerPort: 5432
+        env:
+        - name: POSTGRES_USER
+          value: "postgres"
+        - name: POSTGRES_PASSWORD
+          value: "securepass"
+        - name: POSTGRES_DB
+          value: "trustshield"
+        resources:
+          limits:
+            cpu: "1"
+            memory: "1Gi"
+          requests:
+            cpu: "250m"
+            memory: "256Mi"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: db-service
+  namespace: trustshield
+spec:
+  ports:
+  - port: 5432
+  selector:
+    app: db
+---
+
+# -------------------------------------------------------------
+# 2. PYTHON AI/ML SERVICE
+# -------------------------------------------------------------
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ml-deployment
+  namespace: trustshield
+spec:
+  replicas: 3 # Scaled workers for load balancing
+  selector:
+    matchLabels:
+      app: ml-service
+  template:
+    metadata:
+      labels:
+        app: ml-service
+    spec:
+      containers:
+      - name: ml-container
+        image: trustshield-ml:latest # Pull from production container registry
+        command: ["gunicorn", "-c", "gunicorn_conf.py", "app:app"]
+        ports:
+        - containerPort: 8080
+        resources:
+          limits:
+            cpu: "2"
+            memory: "2Gi"
+          requests:
+            cpu: "500m"
+            memory: "512Mi"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ml-service
+  namespace: trustshield
+spec:
+  ports:
+  - port: 8080
+    targetPort: 8080
+  selector:
+    app: ml-service
+---
+
+# -------------------------------------------------------------
+# 3. EXPRESS CORE BACKEND API
+# -------------------------------------------------------------
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend-deployment
+  namespace: trustshield
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: backend
+  template:
+    metadata:
+      labels:
+        app: backend
+    spec:
+      containers:
+      - name: backend-container
+        image: trustshield-backend:latest
+        ports:
+        - containerPort: 5000
+        env:
+        - name: PORT
+          value: "5000"
+        - name: NODE_ENV
+          value: "production"
+        - name: DISABLE_DB_FALLBACK
+          value: "true" # Force Postgres only in production
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: trustshield-secrets
+              key: database-url
+        - name: JWT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: trustshield-secrets
+              key: jwt-secret
+        - name: ML_SERVICE_URL
+          value: "http://ml-service:8080"
+        - name: TWILIO_ACCOUNT_SID
+          valueFrom:
+            secretKeyRef:
+              name: trustshield-secrets
+              key: twilio-account-sid
+        - name: TWILIO_AUTH_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: trustshield-secrets
+              key: twilio-auth-token
+        - name: TWILIO_FROM_NUMBER
+          valueFrom:
+            secretKeyRef:
+              name: trustshield-secrets
+              key: twilio-from-number
+        # Optional: Secret files mounted from sidecar vault loader (e.g. /vault/secrets)
+        volumeMounts:
+        - name: secrets-volume
+          mountPath: /vault/secrets
+          readOnly: true
+        resources:
+          limits:
+            cpu: "1"
+            memory: "1Gi"
+          requests:
+            cpu: "250m"
+            memory: "256Mi"
+      volumes:
+      - name: secrets-volume
+        emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: backend-service
+  namespace: trustshield
+spec:
+  ports:
+  - port: 5000
+    targetPort: 5000
+  selector:
+    app: backend
+---
+
+# -------------------------------------------------------------
+# 4. VITE REACT FRONTEND
+# -------------------------------------------------------------
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend-deployment
+  namespace: trustshield
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: frontend
+  template:
+    metadata:
+      labels:
+        app: frontend
+    spec:
+      containers:
+      - name: frontend-container
+        image: trustshield-frontend:latest
+        ports:
+        - containerPort: 3000
+        resources:
+          limits:
+            cpu: "500m"
+            memory: "512Mi"
+          requests:
+            cpu: "100m"
+            memory: "128Mi"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: frontend-service
+  namespace: trustshield
+spec:
+  type: LoadBalancer # Exposes the frontend routing gateway to public clients
+  ports:
+  - port: 80
+    targetPort: 3000
+  selector:
+    app: frontend

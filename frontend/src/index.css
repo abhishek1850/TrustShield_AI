@@ -1,0 +1,81 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    font-family: 'Outfit', 'Inter', sans-serif;
+  }
+}
+
+@layer utilities {
+  /* Premium Glassmorphic container */
+  .glass-card {
+    background: rgba(15, 23, 42, 0.6);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+  }
+
+  .glass-panel {
+    background: rgba(10, 15, 30, 0.8);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+  }
+
+  /* Grid backgrounds for high-tech aesthetic */
+  .cyber-grid {
+    background-size: 40px 40px;
+    background-image: 
+      linear-gradient(to right, rgba(51, 65, 85, 0.08) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(51, 65, 85, 0.08) 1px, transparent 1px);
+  }
+
+  /* Scrollbar overrides */
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: rgba(15, 23, 42, 0.3);
+  }
+  
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: rgba(51, 65, 85, 0.6);
+    border-radius: 4px;
+  }
+  
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: #00f0ff;
+  }
+
+  /* Pulse animation glow for threat level indicators */
+  .pulse-glow-cyan {
+    animation: pulseGlowCyan 2s infinite alternate;
+  }
+
+  .pulse-glow-rose {
+    animation: pulseGlowRose 2s infinite alternate;
+  }
+}
+
+@keyframes pulseGlowCyan {
+  0% {
+    box-shadow: 0 0 5px rgba(0, 240, 255, 0.2);
+  }
+  100% {
+    box-shadow: 0 0 20px rgba(0, 240, 255, 0.6);
+  }
+}
+
+@keyframes pulseGlowRose {
+  0% {
+    box-shadow: 0 0 5px rgba(244, 63, 94, 0.2);
+  }
+  100% {
+    box-shadow: 0 0 20px rgba(244, 63, 94, 0.6);
+  }
+}
