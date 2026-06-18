@@ -25,6 +25,10 @@ pool.connect(async (err, client, release) => {
     console.error('Exiting process as fallback datastore is disabled.');
     process.exit(1);
   }
+  if (!client) {
+  console.error("❌ PostgreSQL client is undefined.");
+  process.exit(1);
+ }
 
   console.log('🔌 TrustShield Database: Successfully connected to PostgreSQL.');
 

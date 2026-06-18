@@ -56,7 +56,7 @@ router.get(
       );
       
       // Mask token prefixes for security compliance
-      const maskedSessions = result.rows.map(s => ({
+      const maskedSessions = result.rows.map((s: any) => ({
         ...s,
         token: s.token.substring(0, 10) + '...'
       }));

@@ -118,7 +118,7 @@ export async function generateAuthenticationOptions(req: Request, res: Response)
     const challenge = Buffer.from(Math.random().toString(36).substring(2) + Date.now().toString()).toString('base64');
     activeWebAuthnChallenges.set(`auth_challenge_${username}`, challenge);
 
-    const allowCredentials = credentialsQuery.rows.map(c => ({
+    const allowCredentials = credentialsQuery.rows.map((c :any)=>({
       id: c.credential_id,
       type: 'public-key',
       transports: typeof c.transports === 'string' ? JSON.parse(c.transports) : c.transports
